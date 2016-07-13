@@ -1,0 +1,87 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/01/Mux4Way16.hdl
+
+/**
+ * 4-way 16-bit multiplexor:
+ * out = a if sel == 00
+ *       b if sel == 01
+ *       c if sel == 10
+ *       d if sel == 11
+ */
+
+CHIP Mux4Way16 {
+    IN a[16], b[16], c[16], d[16], sel[2];
+    OUT out[16];
+	
+
+    PARTS:
+	/*Note: Cannot assign a whole bus to another bus. E.g.:
+	* this is impossible: 
+	* Mux16(a[16]=a[16],b[16]=b[16],sel=sel[0],out[16]=out[16]);
+	* Must assign each bit on its own! :( Very inefficient...
+	*
+	* Also: Cannot assign new sub_buses! Only the buses that are IN & OUT can be used...
+	* Can only assing new 1-bit variables :´(
+	*/
+	
+	//Get the selector bit!
+	//a_or_b is sel[0]
+	And(a=sel[0],b=sel[1],out=cOrd);
+	
+	//First process selected a or b
+	Mux16(a[0]=a[0],b[0]=b[0],sel=sel[0],out[0]=x0);
+	Mux16(a[1]=a[1],b[1]=b[1],sel=sel[0],out[1]=x1);
+	Mux16(a[2]=a[2],b[2]=b[2],sel=sel[0],out[2]=x2);
+	Mux16(a[3]=a[3],b[3]=b[3],sel=sel[0],out[3]=x3);
+	Mux16(a[4]=a[4],b[4]=b[4],sel=sel[0],out[4]=x4);
+	Mux16(a[5]=a[5],b[5]=b[5],sel=sel[0],out[5]=x5);
+	Mux16(a[6]=a[6],b[6]=b[6],sel=sel[0],out[6]=x6);
+	Mux16(a[7]=a[7],b[7]=b[7],sel=sel[0],out[7]=x7);
+	Mux16(a[8]=a[8],b[8]=b[8],sel=sel[0],out[8]=x8);
+	Mux16(a[9]=a[9],b[9]=b[9],sel=sel[0],out[9]=x9);
+	Mux16(a[10]=a[10],b[10]=b[10],sel=sel[0],out[10]=x10);
+	Mux16(a[11]=a[11],b[11]=b[11],sel=sel[0],out[11]=x11);
+	Mux16(a[12]=a[12],b[12]=b[12],sel=sel[0],out[12]=x12);
+	Mux16(a[13]=a[13],b[13]=b[13],sel=sel[0],out[13]=x13);
+	Mux16(a[14]=a[14],b[14]=b[14],sel=sel[0],out[14]=x14);
+	Mux16(a[15]=a[15],b[15]=b[15],sel=sel[0],out[15]=x15);
+	
+	//Process selected c or d
+	Mux16(a[0]=c[0],b[0]=d[0],sel=cOrd,out[0]=y0);
+	Mux16(a[1]=c[1],b[1]=d[1],sel=cOrd,out[1]=y1);
+	Mux16(a[2]=c[2],b[2]=d[2],sel=cOrd,out[2]=y2);
+	Mux16(a[3]=c[3],b[3]=d[3],sel=cOrd,out[3]=y3);
+	Mux16(a[4]=c[4],b[4]=d[4],sel=cOrd,out[4]=y4);
+	Mux16(a[5]=c[5],b[5]=d[5],sel=cOrd,out[5]=y5);
+	Mux16(a[6]=c[6],b[6]=d[6],sel=cOrd,out[6]=y6);
+	Mux16(a[7]=c[7],b[7]=d[7],sel=cOrd,out[7]=y7);
+	Mux16(a[8]=c[8],b[8]=d[8],sel=cOrd,out[8]=y8);
+	Mux16(a[9]=c[9],b[9]=d[9],sel=cOrd,out[9]=y9);
+	Mux16(a[10]=c[10],b[10]=d[10],sel=cOrd,out[10]=y10);
+	Mux16(a[11]=c[11],b[11]=d[11],sel=cOrd,out[11]=y11);
+	Mux16(a[12]=c[12],b[12]=d[12],sel=cOrd,out[12]=y12);
+	Mux16(a[13]=c[13],b[13]=d[13],sel=cOrd,out[13]=y13);
+	Mux16(a[14]=c[14],b[14]=d[14],sel=cOrd,out[14]=y14);
+	Mux16(a[15]=c[15],b[15]=d[15],sel=cOrd,out[15]=y15);
+	
+	//Selection between x (a or b) and y (c or d)
+	//x or y is sel[1]
+	Mux16(a[0]=x0,b[0]=y0,sel=sel[1],out[0]=out[0]);
+	Mux16(a[1]=x1,b[1]=y1,sel=sel[1],out[1]=out[1]);
+	Mux16(a[2]=x2,b[2]=y2,sel=sel[1],out[2]=out[2]);
+	Mux16(a[3]=x3,b[3]=y3,sel=sel[1],out[3]=out[3]);
+	Mux16(a[4]=x4,b[4]=y4,sel=sel[1],out[4]=out[4]);
+	Mux16(a[5]=x5,b[5]=y5,sel=sel[1],out[5]=out[5]);
+	Mux16(a[6]=x6,b[6]=y6,sel=sel[1],out[6]=out[6]);
+	Mux16(a[7]=x7,b[7]=y7,sel=sel[1],out[7]=out[7]);
+	Mux16(a[8]=x8,b[8]=y8,sel=sel[1],out[8]=out[8]);
+	Mux16(a[9]=x9,b[9]=y9,sel=sel[1],out[9]=out[9]);
+	Mux16(a[10]=x10,b[10]=y10,sel=sel[1],out[10]=out[10]);
+	Mux16(a[11]=x11,b[11]=y11,sel=sel[1],out[11]=out[11]);
+	Mux16(a[12]=x12,b[12]=y12,sel=sel[1],out[12]=out[12]);
+	Mux16(a[13]=x13,b[13]=y13,sel=sel[1],out[13]=out[13]);
+	Mux16(a[14]=x14,b[14]=y14,sel=sel[1],out[14]=out[14]);
+	Mux16(a[15]=x15,b[15]=y15,sel=sel[1],out[15]=out[15]);
+}
