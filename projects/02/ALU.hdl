@@ -47,32 +47,35 @@ CHIP ALU {
    //Modify x according to zx & nx
    Mux16(a=x,b=false,sel=zx,out=xAfterZX);
    Not16(in=xAfterZX,out=nxHELPER);
-   Inc16(in=nxHELPER,out=nxHELPERTwo);
-   Mux16(a=xAfterZX,b=nxHELPERTwo,sel=nx,out=xAfterZXNX);
+   //Inc16(in=nxHELPER,out=nxHELPERTwo);
+   Mux16(a=xAfterZX,b=nxHELPER,sel=nx,out=xAfterZXNX);
    
    //Modify y according to zy & ny
    Mux16(a=y,b=false,sel=zy,out=yAfterZY);
    Not16(in=yAfterZY,out=nyHELPER);
-   Inc16(in=nyHELPER,out=nyHELPERTwo);
-   Mux16(a=yAfterZY,b=nyHELPERTwo,sel=ny,out=yAfterZYNY);
+   //Inc16(in=nyHELPER,out=nyHELPERTwo);
+   Mux16(a=yAfterZY,b=nyHELPER,sel=ny,out=yAfterZYNY);
    
    //Compute x + y
-   //TODO: Implement me
+   Add16(a=xAfterZXNX,b=yAfterZYNY,out=PlusAB);
    
    //Compute x & y
    And16(a=xAfterZXNX,b=yAfterZYNY,out=AndAB);
    
    //Choose between x + y and x & y
-	Mux16(a=AndAB,b=true,sel=f,out=resultF);
-   //Uncomment ME!!!!
-   //Mux16(a=AndAB,b=PlusAB,sel=f,out=resultF);
+   Mux16(a=AndAB,b=PlusAB,sel=f,out=resultF);
    
    //Negate output
    Not16(in=resultF,out=negResultF);
+   //Choose output according to no and calculate ng
+   Mux16(a=resultF,b=negResultF,sel=no,out=calculatedResult,out=out,out[0..7]=firstEight,out[8..15]=secondEight,out[15]=ng);
    
-   //Choose output according to no
-   Mux16(a=resultF,b=negResultF,sel=no,out=out);
-   
+   //Calculate if result is zero
+   Or8Way(in=firstEight,out=firstEightHelper);
+   Or8Way(in=secondEight,out=secondEightHelper);
+   Or(a=firstEightHelper,b=secondEightHelper,out=onePresent);
+   Not(in=onePresent,out=zr);
+
    
    
    
