@@ -1,0 +1,169 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/05/Memory.hdl
+
+/**
+ * The complete address space of the Hack computer's memory,
+ * including RAM and memory-mapped I/O. 
+ * The chip facilitates read and write operations, as follows:
+ *     Read:  out(t) = Memory[address(t)](t)
+ *     Write: if load(t-1) then Memory[address(t-1)](t) = in(t-1)
+ * In words: the chip always outputs the value stored at the memory 
+ * location specified by address. If load==1, the in value is loaded 
+ * into the memory location specified by address. This value becomes 
+ * available through the out output from the next time step onward.
+ * Address space rules:
+ * Only the upper 16K+8K+1 words of the Memory chip are used. 
+ * Access to address>0x6000 is invalid. Access to any address in 
+ * the range 0x4000-0x5FFF results in accessing the screen memory 
+ * map. Access to address 0x6000 results in accessing the keyboard 
+ * memory map. The behavior in these addresses is described in the 
+ * Screen and Keyboard chip specifications given in the book.
+ */
+
+CHIP Memory {
+    IN in[16], load, address[15];
+    OUT out[16];
+
+    PARTS:
+    // Put your code here:
+	
+	//RAM16K goes from 0x0000 to 0x3E7F
+	//Accessable ram of this memory chip goes from 0x0000 to 0x3FFF -> I need two ram block
+	//I need RAM16K and RAM512 (still not all of RAM512 will be used, 128 registers will be waster)
+	//Screen goes from 0x4000 to 0x5FFF
+	//Keyboard is 0x6000
+	//Anyhting over 0x6000 is invalid
+	
+	//Idea: Use bitmasks to find out in what ram block (RAM512 or RAM16K) the value should be stored
+	//Lowest memory is RAM512
+	//As soons as the capacity of RAM512 is exceeded, use RAM16K. 
+	//RAM512 is exceeded from 0x000 to 0x1FF or  ‭0000 0001 1111 1111‬
+	//RAM16K is exceeded at 0x3E80 or 0011 1110 1000 0000
+	//IDEA: After the devive has been determined with a bitmask, 
+	//use two-complements substraction to get the right address!
+	
+	/* 
+	* <------------>
+	* Determine in which storage it should be stored (RAM512,RAM16K or SCREEN)
+	* <------------->
+	*/
+	//Is capacity of RAM512 exceeded? 
+	//Test, if the number in address is 512 or bigger
+	Or8Way(in[0..5]=address[9..14],out=ram512exceeded);
+	
+	//Is capacity of RAM16K exceeded?
+	//Range is from including 0x0200 to including 0x3FFF
+	//0x3FFF is 011 1111 1111 1111
+	Or8Way(in[0]=address[14],out=mustBeStoredinScreen); //Normal or would have been enough...
+	
+	//TODO: Also test,if capacity of screen is exceeded?
+	
+	/* 
+	* <------------>
+	* Actual storing happens
+	* <------------->
+	*/
+	//Store in RAM512, if not exceeded and load is set
+	Not(in=ram512exceeded,out=ram512Notexcceded);
+	And(a=load,b=ram512Notexcceded,out=storeInRam512);
+	//Finally store in RAM512
+	RAM512(in=in,load=storeInRam512,address=address[0..8],out=outRAM512);
+	
+	//Store in RAM16K
+	//RAM 16K starts at 0x200 and ends at 0x3FFF (not every register of RAM16K is used)
+	//Substract 512 from the input address space.
+	//-512 is 0000 0010 0000 0000
+	Add16(a[0..14]=address[0..14],b[0..8]=false, b[9]=true, b[10..15]=false,
+		out[0]=addressOfRAM16K0,
+		out[1]=addressOfRAM16K1,
+		out[2]=addressOfRAM16K2,
+		out[3]=addressOfRAM16K3,
+		out[4]=addressOfRAM16K4,
+		out[5]=addressOfRAM16K5,
+		out[6]=addressOfRAM16K6,
+		out[7]=addressOfRAM16K7,
+		out[8]=addressOfRAM16K8,
+		out[9]=addressOfRAM16K9,
+		out[10]=addressOfRAM16K10,
+		out[11]=addressOfRAM16K11,
+		out[12]=addressOfRAM16K12,
+		out[13]=addressOfRAM16K13
+	);
+	//Store in RAM16K, if load is selected and RAM512 is exceeded and not mustBeStoredinScreen
+	Not(in=mustBeStoredinScreen,out=notInScreen);	
+	And(a=load,b=ram512exceeded,out=storeMaybeInRam16K);
+	And(a=storeMaybeInRam16K,b=notInScreen,out=storeInRam16K);
+	RAM16K(in=in,load=storeInRam16K,out=outRAM16K,
+		address[0]=addressOfRAM16K0,
+		address[1]=addressOfRAM16K1,
+		address[2]=addressOfRAM16K2,
+		address[3]=addressOfRAM16K3,
+		address[4]=addressOfRAM16K4,
+		address[5]=addressOfRAM16K5,
+		address[6]=addressOfRAM16K6,
+		address[7]=addressOfRAM16K7,
+		address[8]=addressOfRAM16K8,
+		address[9]=addressOfRAM16K9,
+		address[10]=addressOfRAM16K10,
+		address[11]=addressOfRAM16K11,
+		address[12]=addressOfRAM16K12,
+		address[13]=addressOfRAM16K13
+	);
+	
+	//Store in Screen
+	//Screen starts at indluding 0x4000 and goes to including 0x5FFF
+	//Substract 0x4000 from input adress space. 
+	//0x4000 is 0100 0000 0000 0000
+	//-0x4000 is 1100 0000 0000 0000
+	Add16(a[0..14]=address[0..14],b[0..13]=false,b[14..15]=true,
+		out[0]=addressOfSCREEN0,
+		out[1]=addressOfSCREEN1,
+		out[2]=addressOfSCREEN2,
+		out[3]=addressOfSCREEN3,
+		out[4]=addressOfSCREEN4,
+		out[5]=addressOfSCREEN5,
+		out[6]=addressOfSCREEN6,
+		out[7]=addressOfSCREEN7,
+		out[8]=addressOfSCREEN8,
+		out[9]=addressOfSCREEN9,
+		out[10]=addressOfSCREEN10,
+		out[11]=addressOfSCREEN11,
+		out[12]=addressOfSCREEN12
+	);
+	//Store, if storeInScreen and load
+	And(a=load,b=mustBeStoredinScreen,out=storeInScreen);
+	Screen(in=in,load=storeInScreen,out=outScreen,
+		address[0]=addressOfSCREEN0,
+		address[1]=addressOfSCREEN1,
+		address[2]=addressOfSCREEN2,
+		address[3]=addressOfSCREEN3,
+		address[4]=addressOfSCREEN4,
+		address[5]=addressOfSCREEN5,
+		address[6]=addressOfSCREEN6,
+		address[7]=addressOfSCREEN7,
+		address[8]=addressOfSCREEN8,
+		address[9]=addressOfSCREEN9,
+		address[10]=addressOfSCREEN10,
+		address[11]=addressOfSCREEN11,
+		address[12]=addressOfSCREEN12
+	);
+	
+	//Compute output of Keyboard
+	Keyboard(out=outKeyboard);
+	
+	//Check if we need to read from keyboard
+	//Keyboard is 0110 0000 0000 0000 or 0x6000
+	And(a=address[13],b=address[14],out=readFromKeyboard);
+	
+	/* 
+	* <------------>
+	* Which storage should be mapped to output?
+	* <------------->
+	*/
+	Mux16(a=outRAM512,b=outRAM16K,sel=ram512exceeded,out=outRAM);
+	Mux16(a=outScreen,b=outKeyboard,sel=readFromKeyboard,out=outScreenOrKeyboard);
+	Mux16(a=outRAM,b=outScreenOrKeyboard,sel=mustBeStoredinScreen,out=out);
+
+}
