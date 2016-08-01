@@ -1,0 +1,96 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/05/CPU.hdl
+
+/**
+ * The Hack CPU (Central Processing unit), consisting of an ALU,
+ * two registers named A and D, and a program counter named PC.
+ * The CPU is designed to fetch and execute instructions written in 
+ * the Hack machine language. In particular, functions as follows:
+ * Executes the inputted instruction according to the Hack machine 
+ * language specification. The D and A in the language specification
+ * refer to CPU-resident registers, while M refers to the external
+ * memory location addressed by A, i.e. to Memory[A]. The inM input 
+ * holds the value of this location. If the current instruction needs 
+ * to write a value to M, the value is placed in outM, the address 
+ * of the target location is placed in the addressM output, and the 
+ * writeM control bit is asserted. (When writeM==0, any value may 
+ * appear in outM). The outM and writeM outputs are combinational: 
+ * they are affected instantaneously by the execution of the current 
+ * instruction. The addressM and pc outputs are clocked: although they 
+ * are affected by the execution of the current instruction, they commit 
+ * to their new values only in the next time step. If reset==1 then the 
+ * CPU jumps to address 0 (i.e. pc is set to 0 in next time step) rather 
+ * than to the address resulting from executing the current instruction. 
+ */
+
+CHIP CPU {
+
+    IN  inM[16],         // M value input  (M = contents of RAM[A])
+        instruction[16], // Instruction for execution
+        reset;           // Signals whether to re-start the current
+                         // program (reset==1) or continue executing
+                         // the current program (reset==0).
+
+    OUT outM[16],        // M value output
+        writeM,          // Write to M? 
+        addressM[15],    // Address in data memory (of M)
+        pc[15];          // address of next instruction
+
+    PARTS:
+    // Put your code here:
+	
+		
+	//<------>
+	//Store in ARegister
+	//<------>
+	//Select between ALUoutputForA (this happens if d1=1 and instruction[15]=1) or instruction[0..14] (A-instruction was selected aka instruction[15]=0) 
+	Mux16(a[0..14]=instruction[0..14],b=ALUoutputForA,sel=instruction[15],out=storeInRegisterA);
+	
+	//Store only in ARegister if instruction[15]=0 (A-instruction) or (instruction[15]=1 and d1=1)
+	Not(in=instruction[15],out=AInstruction);
+	And(a=instruction[15],b=instruction[5],out=storeALUOutputForA);
+	Or(a=A-instruction,b=storeALUOutputForA,out=loadARegister);
+	//Direct output also to addressM!
+	ARegister(in=storeInRegisterA,load=loadARegister,out=outputOfARegister,out=addressM);
+	
+	//<------>
+	//Store in DRegister
+	//<------>
+	//Store only in DRegister, if (d2=1 and CInstruction=1 aka instruction[15]=1)
+	And(a=instruction[4],b=instruction[15],out=loadDRegister);
+	DRegister(in=ALUoutputForD,load=loadDRegister,out=outputOfDRegister);
+	
+	//<------>
+	//Select, if A or M should be put into ALU
+	//<------>
+	//if instruction[15]=1 and instruction[12]=1, then use inM
+	//if instruction[15]=1 and instruction[12]=0, then outputOfARegister
+	//We do not care about instruction[15]=1, because this commands makes
+	//only sense, if instruction[15]=1. So if instruction[15]=0 we can 
+	//still make the calculation, but it is immadiatly discarded!
+	//Only selector bit is therefore instruction[12]!
+	Mux16(a=outputOfARegister,b=inM,sel=instruction[12],out=AOrM);
+	
+	//<------>
+	//Programm jumping logic (or better: What should the PC do next?)
+	//<------>
+	//Jump, if at least one of the jump bits was set and we have a c instruction!
+	//First, check j bits
+	Or8Way(in[0..2]=instruction[0..2],out=jumpBits); //We waste a few bits here by using Or8Way
+	//Check if C-instruction and jump bits are set
+	Or(a=instruction[15],b=jumpBits,out=shouldJump); //akaJump
+	
+	//Finally set PC
+	PC(in=outputOfARegister,load=shouldJump,reset=reset,out=pc);
+	
+	//<------>
+	//Programm ALU logic
+	//<------>
+	ALU(
+		
+		
+		out=ALUoutputForD,out=ALUoutputForA,out=outM);
+		
+}
