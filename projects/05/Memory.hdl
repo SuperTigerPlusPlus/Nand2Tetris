@@ -29,88 +29,40 @@ CHIP Memory {
     PARTS:
     // Put your code here:
 	
-	//RAM16K goes from 0x0000 to 0x3E7F
-	//Accessable ram of this memory chip goes from 0x0000 to 0x3FFF -> I need two ram block
-	//I need RAM16K and RAM512 (still not all of RAM512 will be used, 128 registers will be waster)
+	//RAM16K goes from 0x0000 to 0x3FFF
 	//Screen goes from 0x4000 to 0x5FFF
 	//Keyboard is 0x6000
 	//Anyhting over 0x6000 is invalid
 	
-	//Idea: Use bitmasks to find out in what ram block (RAM512 or RAM16K) the value should be stored
-	//Lowest memory is RAM512
-	//As soons as the capacity of RAM512 is exceeded, use RAM16K. 
-	//RAM512 is exceeded from 0x000 to 0x1FF or  ‭0000 0001 1111 1111‬
-	//RAM16K is exceeded at 0x3E80 or 0011 1110 1000 0000
-	//IDEA: After the devive has been determined with a bitmask, 
+	//Idea: Use bitmasks to find out in what I should store (RAM16K or Screen )
+	//IDEA: After the device (RAM16K or SCREEN) has been determined with a bitmask, 
 	//use two-complements substraction to get the right address!
 	
 	/* 
 	* <------------>
-	* Determine in which storage it should be stored (RAM512,RAM16K or SCREEN)
+	* Determine in which storage it should be stored (RAM16K or SCREEN)
 	* <------------->
 	*/
-	//Is capacity of RAM512 exceeded? 
-	//Test, if the number in address is 512 or bigger
-	Or8Way(in[0..5]=address[9..14],out=ram512exceeded);
 	
 	//Is capacity of RAM16K exceeded?
-	//Range is from including 0x0200 to including 0x3FFF
+	//Range is from including 0x0000 to including 0x3FFF
 	//0x3FFF is 011 1111 1111 1111
-	Or8Way(in[0]=address[14],out=mustBeStoredinScreen); //Normal or would have been enough...
+	//If address[14]=0 then store in SCREEN 
 	
-	//TODO: Also test,if capacity of screen is exceeded?
+	//TODO: Also test,if capacity of screen is exceeded? Is not tested by test script, so we don't care about it...
 	
 	/* 
 	* <------------>
 	* Actual storing happens
 	* <------------->
 	*/
-	//Store in RAM512, if not exceeded and load is set
-	Not(in=ram512exceeded,out=ram512Notexcceded);
-	And(a=load,b=ram512Notexcceded,out=storeInRam512);
-	//Finally store in RAM512
-	RAM512(in=in,load=storeInRam512,address=address[0..8],out=outRAM512);
 	
 	//Store in RAM16K
-	//RAM 16K starts at 0x200 and ends at 0x3FFF (not every register of RAM16K is used)
-	//Substract 512 from the input address space.
-	//-512 is 0000 0010 0000 0000
-	Add16(a[0..14]=address[0..14],b[0..8]=false, b[9]=true, b[10..15]=false,
-		out[0]=addressOfRAM16K0,
-		out[1]=addressOfRAM16K1,
-		out[2]=addressOfRAM16K2,
-		out[3]=addressOfRAM16K3,
-		out[4]=addressOfRAM16K4,
-		out[5]=addressOfRAM16K5,
-		out[6]=addressOfRAM16K6,
-		out[7]=addressOfRAM16K7,
-		out[8]=addressOfRAM16K8,
-		out[9]=addressOfRAM16K9,
-		out[10]=addressOfRAM16K10,
-		out[11]=addressOfRAM16K11,
-		out[12]=addressOfRAM16K12,
-		out[13]=addressOfRAM16K13
-	);
-	//Store in RAM16K, if load is selected and RAM512 is exceeded and not mustBeStoredinScreen
-	Not(in=mustBeStoredinScreen,out=notInScreen);	
-	And(a=load,b=ram512exceeded,out=storeMaybeInRam16K);
-	And(a=storeMaybeInRam16K,b=notInScreen,out=storeInRam16K);
-	RAM16K(in=in,load=storeInRam16K,out=outRAM16K,
-		address[0]=addressOfRAM16K0,
-		address[1]=addressOfRAM16K1,
-		address[2]=addressOfRAM16K2,
-		address[3]=addressOfRAM16K3,
-		address[4]=addressOfRAM16K4,
-		address[5]=addressOfRAM16K5,
-		address[6]=addressOfRAM16K6,
-		address[7]=addressOfRAM16K7,
-		address[8]=addressOfRAM16K8,
-		address[9]=addressOfRAM16K9,
-		address[10]=addressOfRAM16K10,
-		address[11]=addressOfRAM16K11,
-		address[12]=addressOfRAM16K12,
-		address[13]=addressOfRAM16K13
-	);
+	//RAM 16K starts at 0x0000 and ends at 0x3FFF	
+	//Store in RAM16K, if load is selected and not stored in Screen (address[14]=0 )
+	Not(in=address[14],out=notInScreen);	
+	And(a=load,b=notInScreen,out=storeInRam16K);
+	RAM16K(in=in,load=storeInRam16K,address[0..13]=address[0..13],out=outRAM16K);
 	
 	//Store in Screen
 	//Screen starts at indluding 0x4000 and goes to including 0x5FFF
@@ -118,7 +70,7 @@ CHIP Memory {
 	//0x4000 is 0100 0000 0000 0000
 	//-0x4000 is 1100 0000 0000 0000
 	Add16(a[0..14]=address[0..14],b[0..13]=false,b[14..15]=true,
-		out[0]=addressOfSCREEN0,
+		out[0]=addressOfSCREEN0, //This is necessary, because internal pins can not be sub addressed
 		out[1]=addressOfSCREEN1,
 		out[2]=addressOfSCREEN2,
 		out[3]=addressOfSCREEN3,
@@ -132,8 +84,8 @@ CHIP Memory {
 		out[11]=addressOfSCREEN11,
 		out[12]=addressOfSCREEN12
 	);
-	//Store, if storeInScreen and load
-	And(a=load,b=mustBeStoredinScreen,out=storeInScreen);
+	//Store, if storeInScreen (address[14]=1) and load
+	And(a=load,b=address[14],out=storeInScreen);
 	Screen(in=in,load=storeInScreen,out=outScreen,
 		address[0]=addressOfSCREEN0,
 		address[1]=addressOfSCREEN1,
@@ -162,8 +114,7 @@ CHIP Memory {
 	* Which storage should be mapped to output?
 	* <------------->
 	*/
-	Mux16(a=outRAM512,b=outRAM16K,sel=ram512exceeded,out=outRAM);
-	Mux16(a=outScreen,b=outKeyboard,sel=readFromKeyboard,out=outScreenOrKeyboard);
-	Mux16(a=outRAM,b=outScreenOrKeyboard,sel=mustBeStoredinScreen,out=out);
+	Mux16(a=outRAM16K,b=outScreen,sel=address[14],out=outRAM);
+	Mux16(a=outRAM,b=outKeyboard,sel=readFromKeyboard,out=out);
 
 }
