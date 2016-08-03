@@ -45,22 +45,22 @@ CHIP CPU {
 	//<------>
 	//Store in ARegister
 	//<------>
-	//Select between ALUoutputForA (this happens if d1=1 and instruction[15]=1) or instruction[0..14] (A-instruction was selected aka instruction[15]=0) 
-	Mux16(a[0..14]=instruction[0..14],b=ALUoutputForA,sel=instruction[15],out=storeInRegisterA);
+	//Select between ALUOutput (this happens if d1=1 and instruction[15]=1) or instruction[0..14] (A-instruction was selected aka instruction[15]=0) 
+	Mux16(a[0..14]=instruction[0..14],b=ALUOutput,sel=instruction[15],out=storeInRegisterA);
 	
 	//Store only in ARegister if instruction[15]=0 (A-instruction) or (instruction[15]=1 and d1=1)
 	Not(in=instruction[15],out=AInstruction);
-	And(a=instruction[15],b=instruction[5],out=storeALUOutputForA);
-	Or(a=A-instruction,b=storeALUOutputForA,out=loadARegister);
+	And(a=instruction[15],b=instruction[5],out=storeALUOutput);
+	Or(a=A-instruction,b=storeALUOutput,out=loadARegister);
 	//Direct output also to addressM!
-	ARegister(in=storeInRegisterA,load=loadARegister,out=outputOfARegister,out=addressM);
+	ARegister(in=storeInRegisterA,load=loadARegister,out=outputOfARegister,out[0..14]=addressM);
 	
 	//<------>
 	//Store in DRegister
 	//<------>
 	//Store only in DRegister, if (d2=1 and CInstruction=1 aka instruction[15]=1)
 	And(a=instruction[4],b=instruction[15],out=loadDRegister);
-	DRegister(in=ALUoutputForD,load=loadDRegister,out=outputOfDRegister);
+	DRegister(in=ALUOutput,load=loadDRegister,out=outputOfDRegister);
 	
 	//<------>
 	//Select, if A or M should be put into ALU
@@ -83,14 +83,31 @@ CHIP CPU {
 	Or(a=instruction[15],b=jumpBits,out=shouldJump); //akaJump
 	
 	//Finally set PC
-	PC(in=outputOfARegister,load=shouldJump,reset=reset,out=pc);
+	PC(in=outputOfARegister,load=shouldJump,reset=reset,out[0..14]=pc);
 	
+
 	//<------>
-	//Programm ALU logic
+	//Decode instruction c-bits
 	//<------>
+	//Mhhhh, after looking at Figure 4.3 no obvious pattern emerged...
+	//Hardcoding every operation it is then!
+	
+	//C-bits is from instruction[6] (aka C6) to instruction[11] (aka C1)
+
+	//0 is from C6 to C1: 0 1 0 1 0 1
+	Or8Way(a[0..5]=instruction[6..11],b[0]=false, b[1]=true, b[2]=false,b[3]=true,b[4]=false,b[5]=true,out=zeroInst);
+	//1 is: 1 1 1 1 1 1
+	Or8Way(a[0..5]=instruction[6..11],b[0]=true, b[1]=true, b[2]=true,b[3]=true,b[4]=true,b[5]=true,out=zeroInst);
+	
+	
+	
+	
+	
+	
+
 	ALU(
 		
 		
-		out=ALUoutputForD,out=ALUoutputForA,out=outM);
+		out=ALUOutput,out=outM);
 		
 }

@@ -1,0 +1,31 @@
+CHIP InstructionDecoder {
+    IN  
+        c[5]; // c-input bits       
+
+    OUT 
+        compZero,
+		compOne,
+		compMinusZero,
+		compD,
+		compA,
+		compNegateD,
+		compNegateA,
+		compMinusD,
+		compMinusA,
+		compDPlusOne,
+		compAPlusOne,
+		compDMinusOne,
+		compAMinusOne,
+		compDPlusA,
+		compDMinusA,
+		compAMinusD,
+		compDAndA,
+		compDorA;
+
+    PARTS:
+	// Put you code here:
+	
+	
+	
+   
+}
