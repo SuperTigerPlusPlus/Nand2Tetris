@@ -1,0 +1,20 @@
+/**
+ * Checks if the bit fields a and b are identical. 
+ * If they are --> set out to true, else out is false. 
+ */
+
+CHIP EqualityChecker {
+    IN  
+        a[5],
+		b[5]; 
+    OUT 
+        out;
+    PARTS:
+	// Put you code here:
+	//If a and b is equal then a xor b should be all zeros!
+	Xor5(a=a,b=b,out=c);
+	
+	//If one bit is not zero then Or8Way will return 1!
+	Or8Way(in[0..4]=c,out=notEqual);
+	Not(in=notEqual,out=out);
+}
