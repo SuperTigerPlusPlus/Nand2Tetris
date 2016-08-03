@@ -7,6 +7,8 @@
 !.gitignore
 !*.hdl
 !*.asm
+!*.tst
+!*.cmp
 
 
 # ...even if they are in subdirectories
