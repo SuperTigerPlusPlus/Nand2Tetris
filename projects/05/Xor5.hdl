@@ -1,0 +1,17 @@
+//5 bit Xor
+
+CHIP Xor5 {
+    IN  
+        a[5],
+		b[5]; 
+    OUT 
+        out[5];
+    PARTS:
+	// Put you code here:
+	Xor(a=a[0],b=b[0],out=out[0]);
+	Xor(a=a[1],b=b[1],out=out[1]);
+	Xor(a=a[2],b=b[2],out=out[2]);
+	Xor(a=a[3],b=b[3],out=out[3]);
+	Xor(a=a[4],b=b[4],out=out[4]);
+
+}
