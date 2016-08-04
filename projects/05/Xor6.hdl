@@ -1,11 +1,11 @@
-//5 bit Xor
+//6 bit Xor
 
-CHIP Xor5 {
+CHIP Xor6 {
     IN  
-        a[5],
-		b[5]; 
+        a[6],
+		b[6]; 
     OUT 
-        out[5];
+        out[6];
     PARTS:
 	// Put you code here:
 	Xor(a=a[0],b=b[0],out=out[0]);
@@ -13,4 +13,6 @@ CHIP Xor5 {
 	Xor(a=a[2],b=b[2],out=out[2]);
 	Xor(a=a[3],b=b[3],out=out[3]);
 	Xor(a=a[4],b=b[4],out=out[4]);
+	Xor(a=a[5],b=b[5],out=out[5]);
+
 }
