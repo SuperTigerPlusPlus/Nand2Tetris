@@ -1,31 +1,47 @@
 CHIP InstructionDecoder {
     IN  
-        c[5]; // c-input bits       
+        c[6]; // c-input bits       
 
     OUT 
-        compZero,
-		compOne,
-		compMinusZero,
-		compD,
-		compA,
-		compNegateD,
-		compNegateA,
-		compMinusD,
-		compMinusA,
-		compDPlusOne,
-		compAPlusOne,
-		compDMinusOne,
-		compAMinusOne,
-		compDPlusA,
-		compDMinusA,
-		compAMinusD,
-		compDAndA,
-		compDorA;
+        out[18];
 
     PARTS:
 	// Put you code here:
+	EqualityChecker(a=c,out=out[0],
+		b[0]=false,b[1]=true,b[2]=false,b[3]=true,b[4]=false,b[5]=true);
+	EqualityChecker(a=c,out=out[1],
+		b[0]=true,b[1]=true,b[2]=true,b[3]=true,b[4]=true,b[5]=true);
+	EqualityChecker(a=c,out=out[2],
+		b[0]=false,b[1]=true,b[2]=false,b[3]=true,b[4]=true,b[5]=true);
+	EqualityChecker(a=c,out=out[3],
+		b[0]=false,b[1]=false,b[2]=true,b[3]=true,b[4]=false,b[5]=false);
+	EqualityChecker(a=c,out=out[4],
+		b[0]=false,b[1]=false,b[2]=false,b[3]=false,b[4]=true,b[5]=true);
+	EqualityChecker(a=c,out=out[5],
+		b[0]=true,b[1]=false,b[2]=true,b[3]=true,b[4]=false,b[5]=false);
+	EqualityChecker(a=c,out=out[6],
+		b[0]=true,b[1]=false,b[2]=false,b[3]=false,b[4]=true,b[5]=true);
+	EqualityChecker(a=c,out=out[7],
+		b[0]=true,b[1]=true,b[2]=true,b[3]=true,b[4]=false,b[5]=false);
+	EqualityChecker(a=c,out=out[8],
+		b[0]=true,b[1]=true,b[2]=false,b[3]=false,b[4]=true,b[5]=true);
+	EqualityChecker(a=c,out=out[9],
+		b[0]=true,b[1]=true,b[2]=true,b[3]=true,b[4]=true,b[5]=false);
+	EqualityChecker(a=c,out=out[10],
+		b[0]=true,b[1]=true,b[2]=true,b[3]=false,b[4]=true,b[5]=true);
+	EqualityChecker(a=c,out=out[11],
+		b[0]=false,b[1]=true,b[2]=true,b[3]=true,b[4]=false,b[5]=false);
+	EqualityChecker(a=c,out=out[12],
+		b[0]=false,b[1]=true,b[2]=false,b[3]=false,b[4]=true,b[5]=true);
+	EqualityChecker(a=c,out=out[13],
+		b[0]=false,b[1]=true,b[2]=false,b[3]=false,b[4]=false,b[5]=false);
+	EqualityChecker(a=c,out=out[14],
+		b[0]=true,b[1]=true,b[2]=false,b[3]=false,b[4]=true,b[5]=false);
+	EqualityChecker(a=c,out=out[15],
+		b[0]=true,b[1]=true,b[2]=true,b[3]=false,b[4]=false,b[5]=false);
+	EqualityChecker(a=c,out=out[16],
+		b[0]=false,b[1]=false,b[2]=false,b[3]=false,b[4]=false,b[5]=false);
+	EqualityChecker(a=c,out=out[17],
+		b[0]=true,b[1]=false,b[2]=true,b[3]=false,b[4]=true,b[5]=false);
 	
-	
-	
-   
 }
