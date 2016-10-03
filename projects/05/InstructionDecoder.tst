@@ -1,7 +1,7 @@
 load InstructionDecoder.hdl,
 output-file InstructionDecoder.out,
 compare-to InstructionDecoder.cmp,
-output-list c%B1.6.1 out%B1.18.1;
+output-list c%B1.6.1 outA%B1.9.1 outB%B1.9.1;
 
 set c %B101010,
 eval,
@@ -63,7 +63,7 @@ set c %B010011,
 eval,
 output;
 
-set c %B0001111,
+set c %B000111,
 eval,
 output;
 
@@ -72,5 +72,18 @@ eval,
 output;
 
 set c %B010101,
+eval,
+output;
+
+//Test some gibberish
+set c %B110110,
+eval,
+output;
+
+set c %B111100,
+eval,
+output;
+
+set c %B111000,
 eval,
 output;

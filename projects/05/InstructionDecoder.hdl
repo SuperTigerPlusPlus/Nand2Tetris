@@ -1,47 +1,55 @@
+/* This takes the c-bits of the C-instruction (see chapter 4.2.3) 
+ * and decodes it to the right lines number (see Figure 4.3). There are 18 lines, so i need
+ * 18 output bits. 
+ */
+
 CHIP InstructionDecoder {
     IN  
         c[6]; // c-input bits       
 
     OUT 
-        out[18];
+        outA[9], 
+		outB[9];
+		//At first I only had a out[18], but this crashes the hardware simulation
+		//(highest allowed bus size is 16), therefore I split it up in two
 
     PARTS:
 	// Put you code here:
-	EqualityChecker(a=c,out=out[0],
+	EqualityChecker(a=c,out=outA[0],
 		b[0]=false,b[1]=true,b[2]=false,b[3]=true,b[4]=false,b[5]=true);
-	EqualityChecker(a=c,out=out[1],
+	EqualityChecker(a=c,out=outA[1],
 		b[0]=true,b[1]=true,b[2]=true,b[3]=true,b[4]=true,b[5]=true);
-	EqualityChecker(a=c,out=out[2],
+	EqualityChecker(a=c,out=outA[2],
 		b[0]=false,b[1]=true,b[2]=false,b[3]=true,b[4]=true,b[5]=true);
-	EqualityChecker(a=c,out=out[3],
+	EqualityChecker(a=c,out=outA[3],
 		b[0]=false,b[1]=false,b[2]=true,b[3]=true,b[4]=false,b[5]=false);
-	EqualityChecker(a=c,out=out[4],
+	EqualityChecker(a=c,out=outA[4],
 		b[0]=false,b[1]=false,b[2]=false,b[3]=false,b[4]=true,b[5]=true);
-	EqualityChecker(a=c,out=out[5],
+	EqualityChecker(a=c,out=outA[5],
 		b[0]=true,b[1]=false,b[2]=true,b[3]=true,b[4]=false,b[5]=false);
-	EqualityChecker(a=c,out=out[6],
+	EqualityChecker(a=c,out=outA[6],
 		b[0]=true,b[1]=false,b[2]=false,b[3]=false,b[4]=true,b[5]=true);
-	EqualityChecker(a=c,out=out[7],
+	EqualityChecker(a=c,out=outA[7],
 		b[0]=true,b[1]=true,b[2]=true,b[3]=true,b[4]=false,b[5]=false);
-	EqualityChecker(a=c,out=out[8],
+	EqualityChecker(a=c,out=outA[8],
 		b[0]=true,b[1]=true,b[2]=false,b[3]=false,b[4]=true,b[5]=true);
-	EqualityChecker(a=c,out=out[9],
+	EqualityChecker(a=c,out=outB[0],
 		b[0]=true,b[1]=true,b[2]=true,b[3]=true,b[4]=true,b[5]=false);
-	EqualityChecker(a=c,out=out[10],
+	EqualityChecker(a=c,out=outB[1],
 		b[0]=true,b[1]=true,b[2]=true,b[3]=false,b[4]=true,b[5]=true);
-	EqualityChecker(a=c,out=out[11],
+	EqualityChecker(a=c,out=outB[2],
 		b[0]=false,b[1]=true,b[2]=true,b[3]=true,b[4]=false,b[5]=false);
-	EqualityChecker(a=c,out=out[12],
+	EqualityChecker(a=c,out=outB[3],
 		b[0]=false,b[1]=true,b[2]=false,b[3]=false,b[4]=true,b[5]=true);
-	EqualityChecker(a=c,out=out[13],
+	EqualityChecker(a=c,out=outB[4],
 		b[0]=false,b[1]=true,b[2]=false,b[3]=false,b[4]=false,b[5]=false);
-	EqualityChecker(a=c,out=out[14],
+	EqualityChecker(a=c,out=outB[5],
 		b[0]=true,b[1]=true,b[2]=false,b[3]=false,b[4]=true,b[5]=false);
-	EqualityChecker(a=c,out=out[15],
+	EqualityChecker(a=c,out=outB[6],
 		b[0]=true,b[1]=true,b[2]=true,b[3]=false,b[4]=false,b[5]=false);
-	EqualityChecker(a=c,out=out[16],
+	EqualityChecker(a=c,out=outB[7],
 		b[0]=false,b[1]=false,b[2]=false,b[3]=false,b[4]=false,b[5]=false);
-	EqualityChecker(a=c,out=out[17],
+	EqualityChecker(a=c,out=outB[8],
 		b[0]=true,b[1]=false,b[2]=true,b[3]=false,b[4]=true,b[5]=false);
 	
 }
