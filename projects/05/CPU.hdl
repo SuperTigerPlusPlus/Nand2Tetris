@@ -84,81 +84,19 @@ CHIP CPU {
 	
 	//Finally set PC
 	PC(in=outputOfARegister,load=shouldJump,reset=reset,out[0..14]=pc);
+		
 	
+	
+	//<------>
+	//Compute according to cBits
+	//<------>
+	EndhancedALU(
+	D=outputOfDRegister,
+	AM=AOrM,
+	cBits=instruction[6..11],
+	outM=outM,
+	zr=???,
+	ng=???);
 
-	//<------>
-	//Decode instruction c-bits
-	//<------>
-	//Mhhhh, after looking at Figure 4.3 no obvious pattern emerged...
-	//Hardcoding every operation it is then!
-	
-	//C-bits is from instruction[6] (aka C6) to instruction[11] (aka C1)
-	//See documentation from InstructionDecoder.hdl
-	InstructionDecoder(in=instruction[6..11],outA=firstEightLines,outB=secondEightLines);
-	
-	//Convention: X input of ALU is D and Y input of ALU is A/M
-	
-	//All cases, where the D input must be zero:
-	//firstEightLines[0] = 1, firstEightLines[4]=1, firstEightLines[6]=1, firstEightLines[8]=1, secondEightLines[1]=1, secondEightLines[3]=1
-	//This means zeroD!
-	Or8Way(in[0]=firstEightLines[0],in[1]=firstEightLines[4],in[2]=firstEightLines[6],in[3]=firstEightLines[8],in[4]=secondEightLines[1],in[5]=secondEightLines[3],out=zeroD);
-	
-	//All cases, where the A/M input must be zero:
-	//firstEightLines[0], firstEightLines[3],firstEightLines[5],firstEightLines[7], secondEightLines[0],secondEightLines[2]
-	Or8Way(in[0]=firstEightLines[0],in[1]=firstEightLines[3],in[2]=firstEightLines[5],in[3]=firstEightLines[7],in[4]=secondEightLines[0],in[5]=secondEightLines[2],out=zeroA);
-	
-	//All cases, where the D input is needed (part of the equation)
-	//firstEightLines[3], firstEightLines[5],firstEightLines[7],secondEightLines[0],secondEightLines[1],secondEightLines[2],secondEightLines[4],secondEightLines[5],secondEightLines[6],secondEightLines[7],secondEightLines[8]
-	Or8Way(in[0]=firstEightLines[3],in[1]=firstEightLines[5],in[2]=firstEightLines[7],in[3]=secondEightLines[0],in[4]=secondEightLines[1],in[5]=secondEightLines[4],in[6]=secondEightLines[5],in[7]=secondEightLines[6],out=DnecessaryFirstPart);
-	Or8Way(in[0]=secondEightLines[7],in[1]=secondEightLines[8],in[3]=DnecessaryFirstPart,out=Dnecessary);
-	
-	//All cases, where the AM input is needed (part of the equation)
-	//firstEightLines[4], firstEightLines[6], firstEightLines[8], secondEightLines[1], secondEightLines[3], secondEightLines[4], secondEightLines[5], secondEightLines[6], secondEightLines[7], secondEightLines[8]
-	Or8Way(in[0]=firstEightLines[4],in[1]=firstEightLines[6],in[2]=firstEightLines[8],in[3]=secondEightLines[1],in[4]=secondEightLines[3],in[5]=secondEightLines[4],in[6]=secondEightLines[5],in[7]=secondEightLines[6],out=ANecessaryFirstPart);
-	Or8Way(in[0]=secondEightLines[7],in[1]=secondEightLines[8],in[2]=ANecessaryFirstPart,out=ANecessary);
-	
-	//All the cases, where the D input is negated (!)
-	//firstEightLines[5],
-	And(a=firstEightLines[5],b=true,out=DIsNegated);
-	
-	//All the cases, where the AM input is negated (!)
-	//firstEightLines[6]
-	And(a=firstEightLines[6],b=true, out=AIsNegated);
-	
-	//All the cases, where the D input is 1
-	//Convention: In every line when there is only a number (e.g.: -1 the AM input is used!)
-	//secondEightLines[1], secondEightLines[3]
-	Or(a=secondEightLines[1],b=secondEightLines[3],out=DInputIsOne);
-	
-	//All the cases, where the AM input is 1
-	//firstEightLines[1],firstEightLines[2],secondEightLines[0],secondEightLines[2]
-	Or8Way(in[0]=firstEightLines[1],in[1]=firstEightLines[2],in[2]=secondEightLines[0],in[3]=secondEightLines[2],out=AInputIsOne);
-	
-	//All the cases, where the D input is negativ
-	//firstEightLines[7], secondEightLines[3], secondEightLines[6]
-	Or8Way(in[0]=firstEightLines[7],in[1]=secondEightLines[3],in[2]=secondEightLines[6],out=DIsNegative);
-	
-	//All the cases, where the AM input is negativ
-	//firstEightLines[2],firstEightLines[8],secondEightLines[2],secondEightLines[5]
-	Or8Way(in[0]=firstEightLines[2],in[1]=firstEightLines[8],in[2],secondEightLines[2],in[3]=secondEightLines[5],out=AIsNegative);
-	
-	//All the cases, where D&AM
-	And(a=secondEightLines[7],b=true,out=DAndA);
-	
-	//All the cases, where D|A
-	And(a=secondEightLines[8],b=true,out=DOrA);
-	
-	//TODO: 
-	//- Implement, if D (or AM) is set to 1
-	//- properly negate numbers before putting into ALU
-	//- Think about how to solve the D|A cases
-	//- I think thats it
-	
-	
-	ALU(x=inputX,y=inputY,
-		zx=zeroD, nx=DIsNegated, zy=zeroA, ny=AIsNegated,
-		
-		
-		out=ALUOutput,out=outM);
 		
 }
