@@ -1,0 +1,24 @@
+/**
+ * The EnhancedALU (Arithmetic Logic Unit).
+ * Takes as an input the information from the DRegister
+ * or from the AMRegister. Then calculates outM, zr & ng 
+ * according to the instruction input bus. See Figure 4.3
+ * in chapter 04 for a decription how the instruction input bus
+ * is interpreted. 
+ */
+
+CHIP EnhancedALU {
+    IN  
+        D[16], AM[16],	// 16-bit inputs        
+        cBits[6];		// only the c bits (c1 to c6)
+
+    OUT 
+        outM[16], // 16-bit output
+        zr, // 1 if (outM == 0), 0 otherwise
+        ng; // 1 if (outM < 0),  0 otherwise
+
+    PARTS:
+   // Put you code here:
+     
+   
+}
