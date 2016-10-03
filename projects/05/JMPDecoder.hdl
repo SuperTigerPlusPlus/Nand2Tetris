@@ -1,0 +1,35 @@
+/**
+ * Decodes the three JMP bits to decide, if
+ * a jump is necessary. The three JMP bits are
+ * compared using the two status bits of the ALU:
+ * zr, // 1 if (outM == 0), 0 otherwise
+ * ng; // 1 if (outM < 0),  0 otherwise
+ */
+
+CHIP JMPDecoder {
+    IN 	j1,j2,j3,
+		zr,ng;
+    OUT jmp;
+
+    PARTS:
+    // Put your code here:
+	
+	//JMP if ALU output<0 and j1 is set
+	And(a=j1,b=ng,out=J1Satisfied);
+	
+	//JMP if ALU output=0 and j2 is set
+	And(a=j2,b=zr,out=J2Satisfied);
+	
+	//JMP if ALU output>0 and j3 is set
+	Not(in=ng,out=positiveResult);
+	Not(in=zr,out=notNullResult);
+	And(a=positiveResult,b=notNullResult,out=outBiggerThanZero);
+	And(a=j3,b=outBiggerThanZero,out=J3Satisfied);
+	
+	Or8Way(
+	in[0]=J1Satisfied,
+	in[1]=J2Satisfied,
+	in[2]=J3Satisfied,
+	out=jmp);
+
+}
