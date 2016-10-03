@@ -51,7 +51,7 @@ CHIP CPU {
 	//Store only in ARegister if instruction[15]=0 (A-instruction) or (instruction[15]=1 and d1=1)
 	Not(in=instruction[15],out=AInstruction);
 	And(a=instruction[15],b=instruction[5],out=storeALUOutput);
-	Or(a=A-instruction,b=storeALUOutput,out=loadARegister);
+	Or(a=AInstruction,b=storeALUOutput,out=loadARegister);
 	//Direct output also to addressM!
 	ARegister(in=storeInRegisterA,load=loadARegister,out=outputOfARegister,out[0..14]=addressM);
 	
@@ -72,31 +72,51 @@ CHIP CPU {
 	//still make the calculation, but it is immadiatly discarded!
 	//Only selector bit is therefore instruction[12]!
 	Mux16(a=outputOfARegister,b=inM,sel=instruction[12],out=AOrM);
-	
-	//<------>
-	//Programm jumping logic (or better: What should the PC do next?)
-	//<------>
-	//Jump, if at least one of the jump bits was set and we have a c instruction!
-	//First, check j bits
-	Or8Way(in[0..2]=instruction[0..2],out=jumpBits); //We waste a few bits here by using Or8Way
-	//Check if C-instruction and jump bits are set
-	Or(a=instruction[15],b=jumpBits,out=shouldJump); //akaJump
-	
-	//Finally set PC
-	PC(in=outputOfARegister,load=shouldJump,reset=reset,out[0..14]=pc);
-		
-	
-	
+			
 	//<------>
 	//Compute according to cBits
 	//<------>
-	EndhancedALU(
+	EnhancedALU(
 	D=outputOfDRegister,
 	AM=AOrM,
 	cBits=instruction[6..11],
 	outM=outM,
-	zr=???,
-	ng=???);
+	outM=ALUOutput, //Create the variable ALUOutput to make the CPU.hdl more readable...
+	zr=zr,
+	ng=ng);
+	
+	//<------>
+	// Should we write to memory?
+	//<------>
+	//We should always write to memory, when d3 aka instruction[3] is set and we are a C-instruction!
+	And(a=instruction[3],b=instruction[15],out=writeM);
+	
+	//<------>
+	//Programm jumping logic (or better: What should the PC do next?)
+	//<------>
+	//Decode jmp bits
+	JMPDecoder(
+	j1=instruction[2],j2=instruction[1],j3=instruction[0],
+	zr=zr,ng=ng,
+	jmp=jmp);
+	
+	//Check if C-instruction and we should jump according to JMPDecorder
+	And(a=instruction[15],b=jmp,out=shouldJump); //akaJump
+	
+	//Calculate, if PC should increase! 
+	//PC should always increase, when no JMP should occur and we have a c-instruction!
+	//PC should always increase, when we have a a-instruction!
+	Not(in=shouldJump,out=noJMP);
+	And(a=instruction[15],b=noJMP,out=increaseIFCInstruction);
+	Xor(a=AInstruction,b=increaseIFCInstruction,out=increase);
+	
+	//Finally set PC
+	PC(in=outputOfARegister,
+	inc=increase,
+	load=shouldJump,
+	reset=reset,
+	out[0..14]=pc);
+	
 
-		
+	
 }
