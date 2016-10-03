@@ -18,7 +18,182 @@ CHIP EnhancedALU {
         ng; // 1 if (outM < 0),  0 otherwise
 
     PARTS:
-   // Put you code here:
-     
+	// Put you code here:
    
+	//<------>
+	//Decode instruction c-bits
+	//<------>
+	//C-bits is from instruction[6] (aka C6) to instruction[11] (aka C1)
+	//See documentation from InstructionDecoder.hdl
+	InstructionDecoder(
+	c=cBits,
+	outA[0]=zeroLine,
+	outA[1]=firstLine,
+	outA[2]=secondLine,
+	outA[3]=thirdLine,
+	outA[4]=fourthLine,
+	outA[5]=fifthLine,
+	outA[6]=sixthLine,
+	outA[7]=seventhLine,
+	outA[8]=eigthLine,
+	outB[0]=zeroSecondLine,
+	outB[1]=firstSecondLine,
+	outB[2]=secondSecondLine,
+	outB[3]=thirdSecondLine,
+	outB[4]=fourthSecondLine,
+	outB[5]=fifthSecondLine,
+	outB[6]=sixthSecondLine,
+	outB[7]=seventhSecondLine,
+	outB[8]=eigthSecondLine);
+	
+	//<------>
+	//Compute minusD
+	//<------>
+	//First negate D
+	Not16(in=D,out=negatedD);
+	//Now Add 0000 0000 0000 0001 to get minusD
+	Add16(a=negatedD,b[0]=true,out=minusD);
+	
+	//<------>
+	//Compute minusAM
+	//<------>
+	//First negate AM
+	Not16(in=AM,out=negatedAM);
+	//Now Add 0000 0000 0000 0001 to get minusAM
+	Add16(a=negatedAM,b[0]=true,out=minusAM);
+	
+	//<------>
+	//Set x input of ALU
+	//<------>
+	
+	//Where do we need D to be only 1111 1111 1111 1111?
+	Or8Way(
+	in[0]=secondLine,
+	in[1]=thirdSecondLine,
+	out=only1ForD);
+	
+	//Select between the two constant values 0000 0000 0000 0001 and 1111 1111 1111 1111
+	//a is 0000 0000 0000 0001 and b is 1111 1111 1111 1111
+	Mux16(a[0]=true,b=true,sel=only1ForD,out=constD);	
+	
+	//Where do we need D to be a constant value?
+	Or8Way(
+	in[0]=firstLine,
+	in[1]=secondLine,
+	in[2]=firstSecondLine,
+	in[3]=thirdSecondLine,
+	out=DmustBeConstant);
+	
+	//Where do we need D to be minus?
+	Or8Way(
+	in[0]=seventhLine,
+	in[1]=sixthSecondLine,
+	out=DmustBeNegative);
+	
+	//Select between D and minusD
+	Mux16(a=D,b=minusD,sel=DmustBeNegative,out=DOrMinusD);
+	
+	//Select between the constant value and DOrminusD
+	Mux16(a=DOrMinusD,b=constD,sel=DmustBeConstant,out=x);
+	
+	//<------>
+	//Set y input of ALU
+	//<------>
+	
+	//Where do we need AM to be only 1111 1111 1111 1111?
+	Or8Way(
+	in[0]=secondSecondLine,
+	out=only1ForAM);
+	
+	//Select between the two constant values 0000 0000 0000 0001 and 1111 1111 1111 1111
+	//a is 0000 0000 0000 0001 and b is 1111 1111 1111 1111
+	Mux16(a[0]=true,b=true,sel=only1ForAM,out=constAM);	
+	
+	//Where do we need AM to be a constant value?
+	Or8Way(
+	in[0]=seventhLine,
+	in[1]=zeroSecondLine,
+	in[2]=secondSecondLine,
+	out=AMMustBeConstant);
+	
+	//Where do we need AM to be minus?
+	Or8Way(
+	in[0]=eigthLine,
+	in[1]=fifthSecondLine,
+	out=AMMustBeNegative);
+	
+	//Select between AM and minusAM
+	Mux16(a=AM,b=minusAM,sel=AMMustBeNegative,out=AMOrMinusAM);
+	
+	//Select between the constant value and AMOrMinusAM
+	Mux16(a=AMOrMinusAM,b=constAM,sel=AMMustBeConstant,out=y);
+	
+	
+	//<------>
+	//Set zx of ALU // zero the x input?
+	//<------>
+	Or8Way(
+	in[0]=zeroLine,
+	in[1]=fourthLine,
+	in[2]=sixthLine,
+	in[3]=eigthLine,
+	out=zx);
+	
+	//<------>
+	//Set nx of ALU // negate the x input?
+	Or8Way(
+	in[0]=fifthLine,
+	in[1]=eigthSecondLine,
+	out=nx);
+	
+	//<------>
+	//Set zy of ALU // zero the y input?
+	//<------>
+	Or8Way(
+	in[0]=zeroLine,
+	in[1]=firstLine,
+	in[2]=secondLine,
+	in[3]=thirdLine,
+	in[4]=fifthLine,
+	in[5]=seventhLine,
+	out=zy);
+	
+	//<------>
+	//Set ny of ALU // negate the y input?
+	//<------>
+	Or8Way(
+	in[0]=sixthLine,
+	in[1]=eigthSecondLine,
+	out=ny);
+	
+	//<------>
+	//Set f of ALU  // compute out = x + y (if 1) or x & y (if 0)
+	//<------>
+	Or8Way(
+	in[0]=seventhSecondLine,
+	in[1]=eigthSecondLine,
+	out=negatedF);
+	
+	Not(in=negatedF,out=f);
+	
+	//<------>
+	//Set no of ALU // negate the out output?
+	//<------>
+	Or8Way(
+	in[0]=eigthSecondLine,
+	out=no);
+	
+	//<------>
+	//Calcuate result by using ALU
+	//<------>
+	ALU(x=x,y=y,
+		zx=zx,
+		nx=nx,
+		zy=zy,
+		ny=ny,
+		f=f,
+		no=no,
+		out=outM,
+		zr=zr,
+		ng=ng);  
 }
